@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Phòng Cơ Điện</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            min-height: 600px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+
+        .status-bar {
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #007bff;
+            background: #f0f8ff;
+        }
+
+        .upload-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            transition: background 0.3s;
+        }
+
+        .upload-button:hover {
+            background: #0056b3;
+        }
+
+        .chat-container {
+            height: 400px;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            background: white;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: linear-gradient(to bottom, #fafafa, #ffffff);
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 15px;
+            max-width: 80%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .ai-message {
+            background: linear-gradient(135deg, #e9ecef, #f8f9fa);
+            color: #2c3e50;
+            border-left: 4px solid #007bff;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+            border-left: 4px solid #a71e2a;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            border-top: 1px solid #e9ecef;
+            background: #f8f9fa;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #007bff;
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: scale(1.05);
+        }
+
+        .send-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #007bff;
+            font-style: italic;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .document-count {
+            background: #17a2b8;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .language-selector {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .language-selector select {
+            padding: 8px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .chat-container {
+                height: 350px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                🤖 AI Agent Phòng Cơ Điện
+            </h1>
+            <p>Hệ thống hỗ trợ kỹ thuật thông minh cho nhân viên</p>
+        </div>
+
+        <div class="status-bar" id="statusBar">
+            ✅ Hệ thống đã sẵn sàng - Kết nối Google Drive thành công
+        </div>
+
+        <div class="language-selector">
+            <label for="languageSelect">🌐 Ngôn ngữ: </label>
+            <select id="languageSelect">
+                <option value="vi">Tiếng Việt</option>
+                <option value="en">English</option>
+                <option value="zh">中文</option>
+                <option value="ja">日本語</option>
+            </select>
+        </div>
+
+        <div class="upload-section">
+            <h3>📁 Quản lý Tài liệu</h3>
+            <p>Hệ thống sẽ tự động đồng bộ tài liệu từ Google Drive</p>
+            <button class="upload-button" onclick="syncDocuments()">🔄 Đồng bộ tài liệu</button>
+            <button class="upload-button" onclick="showDocuments()" style="background: #28a745;">📋 Xem danh sách</button>
+            <div class="document-count" id="docCount">📊 Đã tải: 0 tài liệu</div>
+        </div>
+
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="message ai-message">
+                    👋 Xin chào! Tôi là AI Assistant của phòng Cơ Điện. Tôi có thể giúp bạn tìm kiếm thông tin trong các tài liệu kỹ thuật. Hãy đặt câu hỏi về:
+                    <br>• Quy trình vận hành thiết bị
+                    <br>• Hướng dẫn bảo trì
+                    <br>• Thông số kỹ thuật
+                    <br>• Xử lý sự cố
+                    <br><br>💡 <strong>Ví dụ:</strong> "Làm thế nào để bảo trì máy nén khí?" hoặc "Thông số điện áp vận hành của máy bơm là gì?"
+                </div>
+            </div>
+            <div class="chat-input-container">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Nhập câu hỏi của bạn..." onkeypress="handleKeyPress(event)">
+                <button class="send-button" id="sendButton" onclick="sendMessage()">📤 Gửi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cấu hình hệ thống
+        const CONFIG = {
+            openaiApiKey: 'YOUR_OPENAI_API_KEY', // Thay thế bằng API key của bạn
+            googleDriveFolder: 'https://drive.google.com/drive/folders/1uIrX9anqJGZUZttJHWQJR3iTIkNkWnn1',
+            maxTokens: 2000,
+            temperature: 0.1
+        };
+
+        // Biến global
+        let documents = [];
+        let documentEmbeddings = [];
+        let isProcessing = false;
+        let currentLanguage = 'vi';
+
+        // Khởi tạo hệ thống khi trang được tải
+        window.addEventListener('load', function() {
+            initializeSystem();
+            updateDocumentCount();
+        });
+
+        async function initializeSystem() {
+            try {
+                updateStatus('🔄 Đang khởi tạo hệ thống...', '#ffc107');
+                
+                // Mô phỏng việc tải tài liệu từ Google Drive
+                await simulateDocumentLoad();
+                
+                updateStatus('✅ Hệ thống đã sẵn sàng - Kết nối Google Drive thành công', '#28a745');
+            } catch (error) {
+                updateStatus('❌ Lỗi khởi tạo: ' + error.message, '#dc3545');
+            }
+        }
+
+        async function simulateDocumentLoad() {
+            // Mô phỏng dữ liệu tài liệu mẫu
+            const sampleDocuments = [
+                {
+                    name: "Hướng dẫn bảo trì máy nén khí.pdf",
+                    content: "Quy trình bảo trì máy nén khí: 1. Kiểm tra áp suất hàng ngày 2. Thay dầu mỗi 500 giờ vận hành 3. Vệ sinh lọc khí hàng tuần 4. Kiểm tra van an toàn định kỳ",
+                    type: "maintenance",
+                    language: "vi"
+                },
+                {
+                    name: "Thông số kỹ thuật máy bơm nước.docx",
+                    content: "Máy bơm nước ly tâm: Công suất 5.5kW, điện áp 380V, lưu lượng 50m3/h, cột áp 32m, tốc độ 2900 vòng/phút",
+                    type: "specification",
+                    language: "vi"
+                },
+                {
+                    name: "Quy trình xử lý sự cố điện.pdf",
+                    content: "Khi gặp sự cố mất điện: 1. Kiểm tra cầu dao tổng 2. Kiểm tra các aptomat 3. Đo điện áp đầu vào 4. Liên hệ kỹ sư điện nếu cần thiết",
+                    type: "troubleshooting",
+                    language: "vi"
+                }
+            ];
+
+            documents = sampleDocuments;
+            
+            // Tạo embeddings cho tài liệu
+            for (let doc of documents) {
+                const embedding = await createEmbedding(doc.content);
+                documentEmbeddings.push({
+                    document: doc,
+                    embedding: embedding
+                });
+            }
+            
+            updateDocumentCount();
+        }
+
+        async function createEmbedding(text) {
+            // Mô phỏng embedding đơn giản (trong thực tế sẽ dùng OpenAI API)
+            return Array.from({length: 1536}, () => Math.random());
+        }
+
+        async function syncDocuments() {
+            if (isProcessing) return;
+            
+            isProcessing = true;
+            updateStatus('🔄 Đang đồng bộ tài liệu từ Google Drive...', '#ffc107');
+            
+            try {
+                // Mô phỏng quá trình đồng bộ
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Thêm một tài liệu mới để mô phỏng
+                const newDoc = {
+                    name: "Hướng dẫn vận hành hệ thống HVAC.pdf",
+                    content: "Hệ thống điều hòa không khí: Nhiệt độ vận hành 22-25°C, độ ẩm 50-60%, áp suất không khí dương, thay lọc không khí 3 tháng một lần",
+                    type: "operation",
+                    language: "vi"
+                };
+                
+                documents.push(newDoc);
+                const embedding = await createEmbedding(newDoc.content);
+                documentEmbeddings.push({
+                    document: newDoc,
+                    embedding: embedding
+                });
+                
+                updateDocumentCount();
+                updateStatus('✅ Đồng bộ thành công - Đã cập nhật tài liệu mới', '#28a745');
+                
+            } catch (error) {
+                updateStatus('❌ Lỗi đồng bộ: ' + error.message, '#dc3545');
+            } finally {
+                isProcessing = false;
+            }
+        }
+
+        function showDocuments() {
+            const docList = documents.map(doc => `📄 ${doc.name}`).join('\n');
+            addMessage(`📋 Danh sách tài liệu hiện có:\n\n${docList}`, 'ai-message');
+        }
+
+        function updateDocumentCount() {
+            document.getElementById('docCount').textContent = `📊 Đã tải: ${documents.length} tài liệu`;
+        }
+
+        function updateStatus(message, color) {
+            const statusBar = document.getElementById('statusBar');
+            statusBar.textContent = message;
+            statusBar.style.background = color;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message || isProcessing) return;
+            
+            input.value = '';
+            addMessage(message, 'user-message');
+            
+            isProcessing = true;
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+            sendButton.textContent = '⏳ Đang xử lý...';
+            
+            // Hiển thị loading
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'message ai-message loading';
+            loadingDiv.innerHTML = '<div class="spinner"></div> Đang tìm kiếm thông tin...';
+            document.getElementById('chatMessages').appendChild(loadingDiv);
+            scrollToBottom();
+            
+            try {
+                const response = await processQuery(message);
+                loadingDiv.remove();
+                addMessage(response, 'ai-message');
+            } catch (error) {
+                loadingDiv.remove();
+                addMessage('❌ Xin lỗi, đã xảy ra lỗi khi xử lý câu hỏi của bạn: ' + error.message, 'error-message');
+            } finally {
+                isProcessing = false;
+                sendButton.disabled = false;
+                sendButton.textContent = '📤 Gửi';
+            }
+        }
+
+        async function processQuery(query) {
+            try {
+                // Tìm kiếm tài liệu liên quan
+                const relevantDocs = await searchRelevantDocuments(query);
+                
+                if (relevantDocs.length === 0) {
+                    return `❌ Không tìm thấy thông tin liên quan đến câu hỏi: "${query}"\n\n💡 Gợi ý:\n• Thử đặt câu hỏi khác cách\n• Kiểm tra xem tài liệu có trong hệ thống không\n• Liên hệ bộ phận kỹ thuật nếu cần hỗ trợ thêm`;
+                }
+                
+                // Tạo context từ các tài liệu liên quan
+                const context = relevantDocs.map(doc => 
+                    `Tài liệu: ${doc.document.name}\nNội dung: ${doc.document.content}`
+                ).join('\n\n');
+                
+                // Tạo prompt cho OpenAI
+                const prompt = createPrompt(query, context, currentLanguage);
+                
+                // Mô phỏng phản hồi từ AI (trong thực tế sẽ gọi OpenAI API)
+                const response = await simulateAIResponse(query, relevantDocs);
+                
+                return response;
+                
+            } catch (error) {
+                throw new Error('Lỗi xử lý truy vấn: ' + error.message);
+            }
+        }
+
+        async function searchRelevantDocuments(query) {
+            // Mô phỏng tìm kiếm vector
+            const queryEmbedding = await createEmbedding(query);
+            
+            const similarities = documentEmbeddings.map(docEmb => ({
+                document: docEmb.document,
+                similarity: calculateSimilarity(queryEmbedding, docEmb.embedding)
+            }));
+            
+            // Sắp xếp theo độ tương tự và lấy top 3
+            return similarities
+                .sort((a, b) => b.similarity - a.similarity)
+                .slice(0, 3)
+                .filter(item => item.similarity > 0.5); // Ngưỡng tương tự tối thiểu
+        }
+
+        function calculateSimilarity(vec1, vec2) {
+            // Tính cosine similarity đơn giản
+            const dotProduct = vec1.reduce((sum, a, i) => sum + a * vec2[i], 0);
+            const normA = Math.sqrt(vec1.reduce((sum, a) => sum + a * a, 0));
+            const normB = Math.sqrt(vec2.reduce((sum, b) => sum + b * b, 0));
+            return dotProduct / (normA * normB);
+        }
+
+        function createPrompt(query, context, language) {
+            const prompts = {
+                vi: `Bạn là một chuyên gia kỹ thuật cơ điện. Dựa vào thông tin sau đây, hãy trả lời câu hỏi một cách chính xác và chi tiết.
+
+Thông tin tài liệu:
+${context}
+
+Câu hỏi: ${query}
+
+Yêu cầu:
+- Chỉ trả lời dựa trên thông tin có trong tài liệu
+- Nếu không có thông tin, hãy nói rõ "Không tìm thấy thông tin"
+- Đưa ra câu trả lời chi tiết và thực tế
+- Sử dụng tiếng Việt`,
+                
+                en: `You are a mechanical-electrical engineering expert. Based on the following information, answer the question accurately and in detail.
+
+Document information:
+${context}
+
+Question: ${query}
+
+Requirements:
+- Only answer based on information in the documents
+- If no information is found, clearly state "Information not found"
+- Provide detailed and practical answers
+- Use English`,
+                
+                zh: `您是机电工程专家。根据以下信息，准确详细地回答问题。
+
+文档信息：
+${context}
+
+问题：${query}
+
+要求：
+- 仅根据文档中的信息回答
+- 如果没有找到信息，请明确说明"未找到信息"
+- 提供详细和实用的答案
+- 使用中文`
+            };
+            
+            return prompts[language] || prompts.vi;
+        }
+
+        async function simulateAIResponse(query, relevantDocs) {
+            // Mô phỏng phản hồi thông minh dựa trên từ khóa
+            const queryLower = query.toLowerCase();
+            
+            if (queryLower.includes('máy nén khí') || queryLower.includes('nén khí')) {
+                return `🔧 **Thông tin về máy nén khí:**\n\nDựa vào tài liệu "Hướng dẫn bảo trì máy nén khí.pdf", tôi tìm thấy thông tin sau:\n\n**Quy trình bảo trì:**\n• Kiểm tra áp suất hàng ngày\n• Thay dầu mỗi 500 giờ vận hành\n• Vệ sinh lọc khí hàng tuần\n• Kiểm tra van an toàn định kỳ\n\n⚠️ **Lưu ý:** Luôn tuân thủ các quy trình an toàn khi làm việc với thiết bị áp suất cao.`;
+            }
+            
+            if (queryLower.includes('máy bơm') || queryLower.includes('bơm nước')) {
+                return `💧 **Thông số kỹ thuật máy bơm nước:**\n\nTừ tài liệu "Thông số kỹ thuật máy bơm nước.docx":\n\n**Thông số chính:**\n• Loại: Máy bơm nước ly tâm\n• Công suất: 5.5kW\n• Điện áp: 380V\n• Lưu lượng: 50m³/h\n• Cột áp: 32m\n• Tốc độ: 2900 vòng/phút\n\n📋 **Ứng dụng:** Phù hợp cho các hệ thống cấp nước công nghiệp.`;
+            }
+            
+            if (queryLower.includes('sự cố') || queryLower.includes('mất điện') || queryLower.includes('điện')) {
+                return `⚡ **Quy trình xử lý sự cố điện:**\n\nTheo tài liệu "Quy trình xử lý sự cố điện.pdf":\n\n**Các bước xử lý khi mất điện:**\n1. ✅ Kiểm tra cầu dao tổng\n2. ✅ Kiểm tra các aptomat\n3. ✅ Đo điện áp đầu vào\n4. ✅ Liên hệ kỹ sư điện nếu cần thiết\n\n🚨 **Cảnh báo:** Chỉ những người có chuyên môn mới được thực hiện các thao tác trên hệ thống điện.`;
+            }
+            
+            if (queryLower.includes('hvac') || queryLower.includes('điều hòa') || queryLower.includes('không khí')) {
+                return `❄️ **Hướng dẫn vận hành hệ thống HVAC:**\n\nTừ tài liệu "Hướng dẫn vận hành hệ thống HVAC.pdf":\n\n**Thông số vận hành:**\n• Nhiệt độ: 22-25°C\n• Độ ẩm: 50-60%\n• Áp suất không khí: Dương áp\n• Bảo trì lọc: 3 tháng/lần\n\n💡 **Gợi ý:** Kiểm tra định kỳ để đảm bảo hiệu suất tối ưu.`;
+            }
+            
+            // Phản hồi mặc định
+            return `📚 Tôi đã tìm kiếm trong ${documents.length} tài liệu có sẵn nhưng không tìm thấy thông tin cụ thể về câu hỏi: "${query}"\n\n💡 **Gợi ý:**\n• Thử đặt câu hỏi khác cách hoặc sử dụng từ khóa khác\n• Kiểm tra xem tài liệu liên quan đã được tải lên Google Drive chưa\n• Liên hệ với bộ phận kỹ thuật để được hỗ trợ thêm\n\n📋 **Các chủ đề tôi có thể hỗ trợ:**\n• Máy nén khí và bảo trì\n• Máy bơm nước và thông số kỹ thuật\n• Xử lý sự cố điện\n• Hệ thống HVAC và điều hòa không khí`;
+        }
+
+        function addMessage(message, className) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${className}`;
+            messageDiv.innerHTML = message.replace(/\n/g, '<br>');
+            chatMessages.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        function scrollToBottom() {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Xử lý thay đổi ngôn ngữ
+        document.getElementById('languageSelect').addEventListener('change', function(e) {
+            currentLanguage = e.target.value;
+            updateLanguage();
+        });
+
+        function updateLanguage() {
+            const translations = {
+                vi: {
+                    welcome: "👋 Xin chào! Tôi là AI Assistant của phòng Cơ Điện...",
+                    placeholder: "Nhập câu hỏi của bạn...",
+                    sendButton: "📤 Gửi"
+                },
+                en: {
+                    welcome: "👋 Hello! I'm the AI Assistant for the Mechanical-Electrical Department...",
+                    placeholder: "Enter your question...",
+                    sendButton: "📤 Send"
+                },
+                zh: {
+                    welcome: "👋 您好！我是机电部门的AI助手...",
+                    placeholder: "输入您的问题...",
+                    sendButton: "📤 发送"
+                }
+            };
+            
+            const lang = translations[currentLanguage] || translations.vi;
+            document.getElementById('chatInput').placeholder = lang.placeholder;
+            document.getElementById('sendButton').textContent = lang.sendButton;
+        }
+
+        // Xử lý upload file (mở rộng trong tương lai)
+        function handleFileUpload() {
+            // Sẽ được triển khai để upload trực tiếp lên Google Drive API
+            alert('Tính năng này sẽ được phát triển để tích hợp với Google Drive API');
+        }
+
+        // Auto-save conversation (tùy chọn)
+        function saveConversation() {
+            const messages = Array.from(document.querySelectorAll('.message')).map(msg => ({
+                content: msg.textContent,
+                type: msg.className.includes('user-message') ? 'user' : 'ai',
+                timestamp: new Date().toISOString()
+            }));
+            
+            // Lưu vào localStorage hoặc gửi lên server
+            console.log('Conversation saved:', messages);
+        }
+    </script>
+</body>
+</html>
