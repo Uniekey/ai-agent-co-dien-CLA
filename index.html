@@ -287,18 +287,8 @@
         <div class="main-content">
             <div class="sidebar">
                 <div class="config-section">
-                    <h3>⚙️ Cấu Hình API</h3>
+                    <h3>⚙️ Cấu Hình Hệ Thống</h3>
                     
-                    <div class="input-group">
-                        <label for="openaiKey">OpenAI API Key:</label>
-                        <input type="password" id="openaiKey" placeholder="sk-..." />
-                    </div>
-
-                    <div class="input-group">
-                        <label for="googleKey">Google Drive API Key:</label>
-                        <input type="password" id="googleKey" placeholder="AIza..." />
-                    </div>
-
                     <div class="input-group">
                         <label for="language">Ngôn ngữ:</label>
                         <select id="language">
@@ -338,7 +328,7 @@
                     <div class="message ai">
                         <strong>🤖 AI Agent:</strong> Xin chào! Tôi là trợ lý AI của phòng Cơ Điện. Tôi có thể giúp bạn tra cứu các tài liệu kỹ thuật nội bộ.<br><br>
                         <strong>Hướng dẫn sử dụng:</strong><br>
-                        1. Nhập API Keys vào bên trái<br>
+                        1. Nhập API Keys vào code (dòng 289-290)<br>
                         2. Nhấn "Khởi Tạo Hệ Thống"<br>
                         3. Đặt câu hỏi về tài liệu kỹ thuật<br><br>
                         <em>Lưu ý: Tôi chỉ trả lời dựa trên tài liệu có sẵn và sẽ thông báo nếu không tìm thấy thông tin.</em>
@@ -363,10 +353,10 @@
     </div>
 
     <script>
-        // === CẤU HÌNH API - THAY ĐỔI TẠI ĐÂY ===
+        // === CẤU HÌNH API - NHẬP API KEYS TẠI ĐÂY ===
         let CONFIG = {
-            openaiApiKey: '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', // Nhập OpenAI API key tại đây hoặc qua giao diện
-            googleApiKey: 'AIzaSyD5uBLWsQL6z-B_yPrJXIk2fbxMXehR8fU', // Nhập Google Drive API key tại đây hoặc qua giao diện
+            openaiApiKey: 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, // ← NHẬP OPENAI API KEY TẠI ĐÂY (dạng: sk-...)
+            googleApiKey: AIzaSyD5uBLWsQL6z-B_yPrJXIk2fbxMXehR8fU, // ← NHẬP GOOGLE DRIVE API KEY TẠI ĐÂY (dạng: AIza...)
             folderId: '1uIrX9anqJGZUZttJHWQJR3iTIkNkWnn1', // ID thư mục Google Drive
             model: 'gpt-4',
             maxTokens: 1000,
@@ -414,17 +404,14 @@
 
         // Khởi tạo hệ thống
         async function initializeSystem() {
-            const openaiKey = document.getElementById('openaiKey').value || CONFIG.openaiApiKey;
-            const googleKey = document.getElementById('googleKey').value || CONFIG.googleApiKey;
             const language = document.getElementById('language').value;
 
-            if (!openaiKey || !googleKey) {
-                showStatus('error', getText('apiError'));
+            if (!CONFIG.openaiApiKey || CONFIG.openaiApiKey === 'YOUR_OPENAI_API_KEY_HERE' || 
+                !CONFIG.googleApiKey || CONFIG.googleApiKey === 'YOUR_GOOGLE_DRIVE_API_KEY_HERE') {
+                showStatus('error', '❌ Vui lòng nhập API Keys vào code trước khi sử dụng.');
                 return;
             }
 
-            CONFIG.openaiApiKey = openaiKey;
-            CONFIG.googleApiKey = googleKey;
             systemState.currentLanguage = language;
 
             showStatus('loading', getText('loading'));
